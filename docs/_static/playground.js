@@ -76,12 +76,14 @@ function enhance() {
     byFile.get(f).push(b);
   }
   for (const [filename, group] of byFile) {
-    const last = group[group.length - 1];
+    const outName = filename.replace(/\.py$/, ".out");
+    const outBlock = document.querySelector('div[data-inc="' + outName + '"]');
+    const anchor = outBlock || group[group.length - 1];
     const wrap = document.createElement("div");
     wrap.className = "playground";
     const btn = document.createElement("button");
     btn.className = "playground-run";
-    btn.textContent = "Run " + filename;
+    btn.textContent = "▶ python " + filename + " tests/*.txt";
     const out = document.createElement("pre");
     out.className = "playground-output";
     btn.addEventListener("click", () => {
@@ -90,7 +92,7 @@ function enhance() {
     });
     wrap.appendChild(btn);
     wrap.appendChild(out);
-    last.parentNode.insertBefore(wrap, last.nextSibling);
+    anchor.parentNode.insertBefore(wrap, anchor.nextSibling);
   }
 }
 
