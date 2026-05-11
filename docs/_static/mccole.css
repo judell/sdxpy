@@ -281,3 +281,31 @@ details.explanation > summary {
 details.explanation[open] > summary {
     list-style: disclosure-open;
 }
+
+/* Playground (Pyodide Run button) */
+.playground {
+    margin: var(--len-half) 0 var(--len-line-height) 0;
+}
+.playground-run {
+    font: inherit;
+    font-size: 0.9em;
+    padding: 0.3em 0.8em;
+    cursor: pointer;
+}
+.playground-run:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+.playground-output {
+    margin: var(--len-quarter) 0 0 0;
+    padding: var(--len-half);
+    background: #f6f8fa;
+    border: 1px solid #e1e4e8;
+    border-radius: 4px;
+    white-space: pre-wrap;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.85em;
+}
+.playground-output:empty {
+    display: none;
+}
