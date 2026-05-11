@@ -114,11 +114,11 @@ async function ensureFixtures(pyodide) {
   }
 }
 
-async function runScript(scriptName, outputEl) {
+async function runScript(scriptName, outputEl, overrideSource) {
   outputEl.textContent = "Loading Python (~7 MB, first time only)...";
   const pyodide = await getPyodide();
   await ensureFixtures(pyodide);
-  const source = await fetchSource(scriptName);
+  const source = overrideSource !== undefined ? overrideSource : await fetchSource(scriptName);
 
   let captured = "";
   pyodide.setStdout({ batched: (s) => { captured += s + "\n"; } });
@@ -156,15 +156,49 @@ function enhance() {
     btn.className = "playground-run";
     btn.textContent = "▶ python " + filename + " tests/*.txt";
     const info = document.createElement("button");
-    info.className = "playground-info";
+    info.className = "playground-secondary";
+    info.type = "button";
     info.setAttribute("aria-label", "Show full source of " + filename);
-    info.title = "Show full source";
-    info.textContent = "i";
+    info.textContent = "View source";
+    const edit = document.createElement("button");
+    edit.className = "playground-secondary";
+    edit.type = "button";
+    edit.setAttribute("aria-label", "Edit source of " + filename);
+    edit.textContent = "Edit ▾";
+    const editor = document.createElement("div");
+    editor.className = "playground-editor";
+    editor.hidden = true;
+    const textarea = document.createElement("textarea");
+    textarea.className = "playground-editor-textarea";
+    textarea.spellcheck = false;
+    const editRun = document.createElement("button");
+    editRun.className = "playground-run playground-editor-run";
+    editRun.type = "button";
+    editRun.textContent = "▶ Run edited";
+    editRun.disabled = true;
+    let originalSource = "";
+    textarea.addEventListener("input", () => {
+      editRun.disabled = textarea.value === originalSource;
+    });
+    const reset = document.createElement("button");
+    reset.className = "playground-editor-reset";
+    reset.type = "button";
+    reset.textContent = "reset to original";
+    const editorControls = document.createElement("div");
+    editorControls.className = "playground-editor-controls";
+    editorControls.appendChild(editRun);
+    editorControls.appendChild(reset);
+    editor.appendChild(textarea);
+    editor.appendChild(editorControls);
     const out = document.createElement("pre");
     out.className = "playground-output";
     btn.addEventListener("click", () => {
       btn.disabled = true;
       runScript(filename, out).finally(() => { btn.disabled = false; });
+    });
+    editRun.addEventListener("click", () => {
+      editRun.disabled = true;
+      runScript(filename, out, textarea.value).finally(() => { editRun.disabled = false; });
     });
     info.addEventListener("click", async () => {
       info.disabled = true;
@@ -175,8 +209,38 @@ function enhance() {
         info.disabled = false;
       }
     });
+    edit.addEventListener("click", async () => {
+      if (editor.hidden) {
+        edit.disabled = true;
+        try {
+          if (!originalSource) {
+            originalSource = await fetchSource(filename);
+            textarea.value = originalSource;
+            editRun.disabled = true;
+          }
+          editor.hidden = false;
+          edit.setAttribute("aria-pressed", "true");
+          edit.textContent = "Edit ▴";
+          textarea.focus();
+        } finally {
+          edit.disabled = false;
+        }
+      } else {
+        editor.hidden = true;
+        edit.removeAttribute("aria-pressed");
+        edit.textContent = "Edit ▾";
+      }
+    });
+    reset.addEventListener("click", async () => {
+      if (!originalSource) originalSource = await fetchSource(filename);
+      textarea.value = originalSource;
+      editRun.disabled = true;
+      textarea.focus();
+    });
     wrap.appendChild(btn);
     wrap.appendChild(info);
+    wrap.appendChild(edit);
+    wrap.appendChild(editor);
     wrap.appendChild(out);
     anchor.parentNode.insertBefore(wrap, anchor.nextSibling);
   }

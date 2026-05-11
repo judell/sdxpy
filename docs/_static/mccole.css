@@ -310,20 +310,16 @@ details.explanation[open] > summary {
     display: none;
 }
 
-/* Playground info bubble */
-.playground-info {
+/* Playground secondary text buttons (View source / Edit) */
+.playground-secondary {
     font: inherit;
     font-size: 0.85em;
-    font-style: italic;
-    width: 1.8em;
-    height: 1.8em;
+    padding: 0.3em 0.6em;
     margin-left: var(--len-quarter);
-    padding: 0;
-    border-radius: 50%;
     cursor: pointer;
     vertical-align: middle;
 }
-.playground-info:disabled {
+.playground-secondary:disabled {
     opacity: 0.6;
     cursor: wait;
 }
@@ -379,4 +375,44 @@ details.explanation[open] > summary {
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: 0.85em;
     white-space: pre;
+}
+
+/* Playground inline editor */
+.playground-editor[hidden] {
+    display: none;
+}
+.playground-editor {
+    margin-top: var(--len-quarter);
+}
+.playground-editor-textarea {
+    display: block;
+    width: 100%;
+    min-height: 12em;
+    padding: 0.6rem 0.75rem;
+    box-sizing: border-box;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.85em;
+    line-height: 1.4;
+    border: 1px solid #e1e4e8;
+    border-radius: 4px;
+    background: #fbfbfb;
+    resize: vertical;
+}
+.playground-editor-reset {
+    font: inherit;
+    font-size: 0.85em;
+    background: none;
+    border: 0;
+    color: #555;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0;
+    margin-top: var(--len-quarter);
+}
+
+.playground-editor-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--len-half);
+    margin-top: var(--len-quarter);
 }
