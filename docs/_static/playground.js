@@ -35,6 +35,77 @@ async function fetchText(url) {
   return await r.text();
 }
 
+const sourceCache = new Map();
+async function fetchSource(filename) {
+  if (!sourceCache.has(filename)) {
+    sourceCache.set(filename, fetchText("./" + filename));
+  }
+  return sourceCache.get(filename);
+}
+
+// Syntax highlighting for the modal source.
+// Docs: https://highlightjs.org/usage/
+const HLJS_BASE = "https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.9.0";
+let hljsPromise = null;
+function getHljs() {
+  if (!hljsPromise) {
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = HLJS_BASE + "/styles/github.min.css";
+    document.head.appendChild(link);
+    hljsPromise = new Promise((resolve, reject) => {
+      const s = document.createElement("script");
+      s.src = HLJS_BASE + "/highlight.min.js";
+      s.onload = () => resolve(window.hljs);
+      s.onerror = reject;
+      document.head.appendChild(s);
+    });
+  }
+  return hljsPromise;
+}
+
+let modalEl = null;
+function getModal() {
+  if (modalEl) return modalEl;
+  modalEl = document.createElement("div");
+  modalEl.className = "playground-modal-backdrop";
+  modalEl.hidden = true;
+  modalEl.innerHTML =
+    '<div class="playground-modal" role="dialog" aria-modal="true">' +
+      '<div class="playground-modal-header">' +
+        '<span class="playground-modal-title"></span>' +
+        '<button class="playground-modal-close" aria-label="Close">×</button>' +
+      '</div>' +
+      '<pre class="playground-modal-source"><code class="language-python"></code></pre>' +
+    '</div>';
+  modalEl.addEventListener("click", (e) => {
+    if (e.target === modalEl) closeModal();
+  });
+  modalEl.querySelector(".playground-modal-close").addEventListener("click", closeModal);
+  document.body.appendChild(modalEl);
+  return modalEl;
+}
+function openModal(title, source) {
+  const m = getModal();
+  m.querySelector(".playground-modal-title").textContent = title;
+  const codeEl = m.querySelector(".playground-modal-source code");
+  codeEl.textContent = source;
+  codeEl.className = "language-python";
+  delete codeEl.dataset.highlighted;
+  m.hidden = false;
+  document.addEventListener("keydown", onModalKey);
+  getHljs().then((hljs) => {
+    if (hljs) hljs.highlightElement(codeEl);
+  }).catch(() => {});
+}
+function closeModal() {
+  if (modalEl) modalEl.hidden = true;
+  document.removeEventListener("keydown", onModalKey);
+}
+function onModalKey(e) {
+  if (e.key === "Escape") closeModal();
+}
+
 async function ensureFixtures(pyodide) {
   try { pyodide.FS.mkdir("tests"); } catch (e) {}
   for (const name of TEST_FILES) {
@@ -47,7 +118,7 @@ async function runScript(scriptName, outputEl) {
   outputEl.textContent = "Loading Python (~7 MB, first time only)...";
   const pyodide = await getPyodide();
   await ensureFixtures(pyodide);
-  const source = await fetchText("./" + scriptName);
+  const source = await fetchSource(scriptName);
 
   let captured = "";
   pyodide.setStdout({ batched: (s) => { captured += s + "\n"; } });
@@ -84,13 +155,28 @@ function enhance() {
     const btn = document.createElement("button");
     btn.className = "playground-run";
     btn.textContent = "▶ python " + filename + " tests/*.txt";
+    const info = document.createElement("button");
+    info.className = "playground-info";
+    info.setAttribute("aria-label", "Show full source of " + filename);
+    info.title = "Show full source";
+    info.textContent = "i";
     const out = document.createElement("pre");
     out.className = "playground-output";
     btn.addEventListener("click", () => {
       btn.disabled = true;
       runScript(filename, out).finally(() => { btn.disabled = false; });
     });
+    info.addEventListener("click", async () => {
+      info.disabled = true;
+      try {
+        const src = await fetchSource(filename);
+        openModal(filename, src);
+      } finally {
+        info.disabled = false;
+      }
+    });
     wrap.appendChild(btn);
+    wrap.appendChild(info);
     wrap.appendChild(out);
     anchor.parentNode.insertBefore(wrap, anchor.nextSibling);
   }

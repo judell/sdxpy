@@ -309,3 +309,74 @@ details.explanation[open] > summary {
 .playground-output:empty {
     display: none;
 }
+
+/* Playground info bubble */
+.playground-info {
+    font: inherit;
+    font-size: 0.85em;
+    font-style: italic;
+    width: 1.8em;
+    height: 1.8em;
+    margin-left: var(--len-quarter);
+    padding: 0;
+    border-radius: 50%;
+    cursor: pointer;
+    vertical-align: middle;
+}
+.playground-info:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+/* Playground modal */
+.playground-modal-backdrop[hidden] {
+    display: none;
+}
+.playground-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+.playground-modal {
+    background: #fff;
+    border-radius: 6px;
+    max-width: min(90vw, 800px);
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+.playground-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid #e1e4e8;
+}
+.playground-modal-title {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-weight: bold;
+}
+.playground-modal-close {
+    font: inherit;
+    font-size: 1.4em;
+    line-height: 1;
+    background: none;
+    border: 0;
+    cursor: pointer;
+    padding: 0 var(--len-quarter);
+}
+.playground-modal-source {
+    margin: 0;
+    padding: 1.25rem;
+    overflow: auto;
+    background: #f6f8fa;
+    border-radius: 0 0 6px 6px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.85em;
+    white-space: pre;
+}
